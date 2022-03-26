@@ -1,20 +1,22 @@
 {
   "name": "crypto-api",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/www"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CryptoCultCurt/crypto-api.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/CryptoCultCurt/crypto-api/issues"
-  },
-  "homepage": "https://github.com/CryptoCultCurt/crypto-api#readme"
+  "dependencies": {
+    "axios": "^0.26.1",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "dotenv": "^16.0.0",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "jade": "~1.11.0",
+    "morgan": "~1.9.1",
+    "pug": "^3.0.2",
+    "swagger-autogen": "^2.20.5",
+    "swagger-ui-express": "^4.3.0",
+    "web3": "^1.7.1"
+  }
 }
