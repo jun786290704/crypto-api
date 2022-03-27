@@ -4,16 +4,22 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+
 const swaggerUi = require('swagger-ui-express')
 const swaggerFile = require('./swagger_output.json')
 
 var config = require('dotenv').config();
-
-
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
 var app = express();
+const dbo = require('./db/conn');
+
+// connect to mongodb
+dbo.connectToServer(function(err) {
+    if (err) console.log(err);
+});
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

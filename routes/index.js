@@ -1,11 +1,17 @@
 var express = require('express');
 var router = express.Router();
 const axios = require('axios');
+const assert = require('assert');
+const { MongoClient } = require('mongodb');
+const URI = process.env.MONGO_CONNECTION;
+const dbo = require('../db/conn');
+const dbConnect = dbo.getDb();
 
 const animalfarm = require('../components/animalfarm/controller');
 const tokens = require('../components/tokens/controller')
 const abi = require('../components/abi/abi');
 const contracts = require('../components/contracts/contracts');
+const { resourceLimits } = require('worker_threads');
 
 lp_contract = {}
 
@@ -79,6 +85,65 @@ router.get('/api/af/garden/:wallet', (req, res) => {
   });
 });
 
+router.put('/api/af/gardenrecords/record', (req, res) => {
+  const dbConnect = dbo.getDb();
+  dbConnect
+    .collection("gardenrecords")
+    .insertOne(req.body, function(err, result) {
+        if (err) {
+            res.status(400).send("Error Inserting Data"); 
+        } else {
+          console.log('Added new record with id ${result.insertId}');
+            res.status(204).send();
+        }
+    })
+});
+
+router.get('/api/af/gardenrecords/records', (req, res) => {
+  console.log('sending back garden records');
+  const dbConnect = dbo.getDb();
+  dbConnect
+    .collection("gardenrecords")
+    .find({})
+    .toArray(function (err, result) {
+      if (err) {
+          res.status(400).send("Error Fetching Data");
+      } else {
+        res.json(result);
+      }
+    })
+});
+
+router.get('/api/af/gardenrecords/process', async (req, res) => {
+  wallets = await animalfarm.getWallets();
+  console.log('wallets');
+  console.log(wallets);
+    // foreach does not do async how oe would think :)
+    for (const wallet of wallets) {
+      console.log('loop map');
+      console.log(wallet);
+      await animalfarm.logWallet(wallet.wallet);
+    }
+    console.log('done');
+
+    res.status(204).send('Complete');
+
+});
+
+router.put('/api/af/wallet', (req, res) => {
+  const dbConnect = dbo.getDb();
+  dbConnect
+    .collection("wallets")
+    .insertOne(req.body, function(err, result) {
+        if (err) {
+            res.status(400).send("Error Inserting Data"); 
+        } else {
+          console.log('Added new record with id ${result.insertId}');
+            res.status(204).send();
+        }
+    })
+});
+
 router.get('/api/af/price/', (req, res) => {
   animalfarm.getAnimalFarmPrices().then(value => {
     res.send(value);
@@ -101,6 +166,7 @@ router.get('/api/lp/:lp', (req, res) => {
     res.send(value);
   });
 });
+
 
 formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
