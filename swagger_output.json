@@ -5,10 +5,10 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "localhost:3000",
+  "host": "api.crypto-cult.api",
   "basePath": "/",
   "schemes": [
-    "http"
+    "https"
   ],
   "paths": {
     "/": {
@@ -20,7 +20,7 @@
     },
     "/api/price": {
       "get": {
-        "description": "",
+        "description": "Depricated, do not use.",
         "parameters": [],
         "responses": {
           "200": {
@@ -60,7 +60,7 @@
     },
     "/api/af/garden/": {
       "get": {
-        "description": "",
+        "description": "Returns details of the Garden from theanimal.farm/garden",
         "parameters": [],
         "responses": {
           "200": {
@@ -71,7 +71,7 @@
     },
     "/api/af/garden/{wallet}": {
       "get": {
-        "description": "",
+        "description": "Returns details of the Garden and a Specified wallet from theanimal.farm/garden",
         "parameters": [
           {
             "name": "wallet",
@@ -89,7 +89,7 @@
     },
     "/api/af/gardenrecords/record": {
       "put": {
-        "description": "Adds a new record to garden data",
+        "description": "Adds a new record of Garden Data from theanimal.farm",
         "parameters": [],
         "responses": {
           "204": {
@@ -103,7 +103,7 @@
     },
     "/api/af/gardenrecords/records": {
       "get": {
-        "description": "",
+        "description": "Return all wallet tracked records from theanimal.farm",
         "parameters": [],
         "responses": {
           "200": {
@@ -128,7 +128,7 @@
     },
     "/api/af/wallet": {
       "put": {
-        "description": "",
+        "description": "Add a wallet to be tracked at theanimal.farm",
         "parameters": [],
         "responses": {
           "204": {
@@ -142,7 +142,7 @@
     },
     "/api/af/price/": {
       "get": {
-        "description": "",
+        "description": "Get the price of Dogs and Pigs from theanimal.farm",
         "parameters": [],
         "responses": {
           "200": {
@@ -153,7 +153,7 @@
     },
     "/api/token/{token}": {
       "get": {
-        "description": "",
+        "description": "Get the price of a given Token on the BSC Network",
         "parameters": [
           {
             "name": "token",
@@ -171,7 +171,7 @@
     },
     "/api/lp/{lp}": {
       "get": {
-        "description": "",
+        "description": "Get the price of a given LP Pool on the BSC Network",
         "parameters": [
           {
             "name": "lp",
