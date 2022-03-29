@@ -5,7 +5,7 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "crypto-api.com",
+  "host": "api.crypto-api.com",
   "basePath": "/",
   "schemes": [
     "https"
