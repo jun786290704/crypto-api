@@ -39,19 +39,39 @@ async function getGardenUserData(contractAddress, wallet) {
   console.log("contract");
   //console.log(contract);
   let totalPlants = 0;
+  let pendingSeeds = 0;
+  let pendingLp = 0;
+
   await contract.methods.hatcheryPlants(wallet).call().then(result => {
     console.log(result);
     totalPlants = parseInt(result);
   });
 
+  await contract.methods.getSeedsSinceLastPlant(wallet).call().then(result => {
+    console.log(result);
+    pendingSeeds = parseInt(result);
+  });
+
+
+
   await contract.methods.calculateSeedSell(totalPlants * 86400).call().then(result => {
     console.log("calculating seeds");
-    lpPerDay = toDec18(result * .95);
+    console.log(result)
+    lpPerDay = toDec18(result);
   })
+
+  await contract.methods.calculateSeedSell(pendingSeeds).call().then(result => {
+    console.log("calculating pending seeds");
+    console.log(result)
+    pendingLp = toDec18(result);
+  })
+
 
   console.log("time to go");
 
   return ({
+    pendingSeeds: pendingSeeds,
+    pendingLp: pendingLp,
     lpPerDay: lpPerDay,
     totalPlants: totalPlants,
     lpPerPlant: lpPerDay / totalPlants,

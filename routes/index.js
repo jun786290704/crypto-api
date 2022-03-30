@@ -11,6 +11,7 @@ const animalfarm = require('../components/animalfarm/controller');
 const tokens = require('../components/tokens/controller')
 const abi = require('../components/abi/abi');
 const contracts = require('../components/contracts/contracts');
+const beans = require('../components/beans/controller');
 const { resourceLimits } = require('worker_threads');
 
 lp_contract = {}
@@ -79,6 +80,9 @@ router.get('/api/af/garden/:wallet', (req, res) => {
       value.gardenData = gardenValue;
       animalfarm.getGardenUserData(contracts.contracts.garden, req.params.wallet).then(gardenUserValue => {
         value.gardenData.user = gardenUserValue;
+        //let secretSauce = (CONTRACTBAL*UINT256*EGGS-(EGGS*REWARDS))/REWARDS
+        value.gardenData.user.marketEggs = toDec18(((value.gardenData.balance*1000000000000000000)*value.gardenData.user.pendingSeeds-
+            (value.gardenData.user.pendingSeeds*value.gardenData.user.pendingLp))/value.gardenData.user.pendingLp)
         res.send(value);
       })
     })
@@ -129,6 +133,24 @@ router.get('/api/af/gardenrecords/process', async (req, res) => {
     res.status(204).send('Complete');
 
 });
+
+router.get('/api/beans/:wallet', (req, res) => {
+  lp_contract = {};
+    let value = {};
+    beans.getBeansData(contracts.contracts.beans).then(beansValue => {
+      value.beansData = beansValue;
+      beans.getBeansUserData(contracts.contracts.beans, req.params.wallet).then(beansUserValue => {
+        value.beansData.user = beansUserValue;
+        //let secretSauce = (CONTRACTBAL*UINT256*EGGS-(EGGS*REWARDS))/REWARDS
+        value.beansData.user.marketEggs = toDec18(((value.beansData.balance*1000000000000000000)*value.beansData.user.pendingEggs-
+            (value.beansData.user.pendingEggs*value.beansData.user.pendingRewards))/value.beansData.user.pendingRewards);
+        value.beansData.user.pendingRewardsUSD = value.beansData.user.pendingRewards * value.beansData.bnb;
+        value.beansData.user.rewardsPerDayUSD = value.beansData.user.rewardsPerDay * value.beansData.bnb;
+        res.send(value);
+      })
+    })
+  });
+
 
 router.put('/api/af/wallet', (req, res) => {
   const dbConnect = dbo.getDb();
