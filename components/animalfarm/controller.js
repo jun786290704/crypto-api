@@ -34,41 +34,41 @@ async function getGardenData(contractAddress) {
 }
 
 async function getGardenUserData(contractAddress, wallet) {
-  console.log("time to get garden user data for " + contractAddress);
+ // console.log("time to get garden user data for " + contractAddress);
   //console.log(abi.ABI_GARDEN);
   var contract = new web3.eth.Contract(abi.ABI_GARDEN, contractAddress);
-  console.log("contract");
+  //console.log("contract");
   //console.log(contract);
   let totalPlants = 0;
   let pendingSeeds = 0;
   let pendingLp = 0;
 
   await contract.methods.hatcheryPlants(wallet).call().then(result => {
-    console.log(result);
+    //console.log(result);
     totalPlants = parseInt(result);
   });
 
   await contract.methods.getSeedsSinceLastPlant(wallet).call().then(result => {
-    console.log(result);
+    //console.log(result);
     pendingSeeds = parseInt(result);
   });
 
 
 
   await contract.methods.calculateSeedSell(totalPlants * 86400).call().then(result => {
-    console.log("calculating seeds");
-    console.log(result)
+    //console.log("calculating seeds");
+    //console.log(result)
     lpPerDay = toDec18(result);
   })
 
   await contract.methods.calculateSeedSell(pendingSeeds).call().then(result => {
-    console.log("calculating pending seeds");
-    console.log(result)
+    //console.log("calculating pending seeds");
+    //console.log(result)
     pendingLp = toDec18(result);
   })
 
 
-  console.log("time to go");
+  //console.log("time to go");
 
   return ({
     pendingSeeds: pendingSeeds,
@@ -108,7 +108,7 @@ async function getPiggyBankData(contractAddress) {
 }
 
 async function logWallet(wallet) {
-  console.log("Calling gardenUserData for wallet" + wallet);
+  //console.log("Calling gardenUserData for wallet" + wallet);
   const dbConnect = dbo.getDb();
   let gardenData = {};
   await tokens.getLPPrice(contracts.contracts.gardenpool).then(value => {
@@ -124,7 +124,9 @@ async function logWallet(wallet) {
   gardenData.createDate = new Date();
   gardenData.wallet = wallet;
   gardenData._id = null;  // make sure the loop does not have previous id
-  console.log('saving wallet data');
+  gardenData.gardenData.user.marketEggs = toDec18(((gardenData.gardenData.balance*1000000000000000000)*gardenData.gardenData.user.pendingSeeds-
+            (gardenData.gardenData.user.pendingSeeds*gardenData.gardenData.user.pendingLp))/gardenData.gardenData.user.pendingLp);
+ // console.log('saving wallet data');
   var myPromise = () => {
     return new Promise((resolve, reject) => {
       dbConnect

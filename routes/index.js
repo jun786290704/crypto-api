@@ -120,17 +120,17 @@ router.get('/api/af/gardenrecords/records', (req, res) => {
 
 router.get('/api/af/gardenrecords/process', async (req, res) => {
   wallets = await animalfarm.getWallets();
-  console.log('wallets');
-  console.log(wallets);
+  //console.log('wallets');
+  //console.log(wallets);
     // foreach does not do async how oe would think :)
     for (const wallet of wallets) {
-      console.log('loop map');
-      console.log(wallet);
+      //console.log('loop map');
+      //console.log(wallet);
       await animalfarm.logWallet(wallet.wallet);
     }
-    console.log('done');
+    //console.log('done');
 
-    res.status(204).send('Complete');
+    res.send('Complete');
 
 });
 
