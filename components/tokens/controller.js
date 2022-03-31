@@ -1,7 +1,8 @@
 const axios = require('axios');
 
 const Web3 = require('web3');
-const web3 = new Web3("https://late-delicate-bush.bsc.quiknode.pro/dcaa02475fb30815fe3558ad3360b234c806ff0d/");
+const NODE_HTTP = process.env.NODE_HTTP;
+const web3 = new Web3(NODE_HTTP);
 
 const abi = require('../abi/abi');
 
