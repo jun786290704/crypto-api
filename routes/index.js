@@ -118,6 +118,21 @@ router.get('/api/af/gardenrecords/records', (req, res) => {
     })
 });
 
+router.get('/api/af/gardenrecords/records/:wallet', (req, res) => {
+  //console.log('sending back garden records');
+  const dbConnect = dbo.getDb();
+  dbConnect
+    .collection("gardenrecords")
+    .find({wallet:req.params.wallet})
+    .toArray(function (err, result) {
+      if (err) {
+          res.status(400).send("Error Fetching Data");
+      } else {
+        res.json(result);
+      }
+    })
+});
+
 router.get('/api/af/gardenrecords/process', async (req, res) => {
   wallets = await animalfarm.getWallets();
   //console.log('wallets');
