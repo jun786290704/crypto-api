@@ -1,10 +1,15 @@
 const axios = require('axios');
+const coingecko = require('coingecko-api');
 
 const Web3 = require('web3');
 const NODE_HTTP = process.env.NODE_HTTP;
 const web3 = new Web3(NODE_HTTP);
 
 const abi = require('../abi/abi');
+
+const chains = JSON.parse(process.env.NODE_CHAINS);
+
+const geckoClient = new coingecko();
 
 var Contract_LP = new web3.eth.Contract(abi.ABI_LP, "0xba6418100db9b93356bfb6a472411fdcfa2e4141");
 var PCS_API = "https://api.pancakeswap.info/api/v2/tokens/";
@@ -54,13 +59,34 @@ async function getLPPrice(contractAddress) {
     return lp_contract;
   }
 
-  async function getTokenPrice(contractAddress) {
+
+  async function getTokenPrice(contractAddress, chainId) {
     let tokenData = {};
-    await axios.get(PCS_API + contractAddress).then(res => {
-      tokenData = res.data.data;
-      tokenData.price = parseFloat(tokenData.price);
-      tokenData.price_BNB = parseFloat(tokenData.price_BNB);
-    })
+    let chain = {};
+    let rpc;
+    if (chainId) {
+        chain = chains.find(element => element.label == chainId);
+        rpc = chain.priceURL;
+    } else 
+        chain.label = 'pcs'
+
+    if (chain.label == 'avax') {
+        await geckoClient.coins.fetchCoinContractInfo(contractAddress, 'avalanche').then(result => {
+            tokenData.price = result.data.market_data.current_price.usd;
+            tokenData.symbol = result.data.symbol;
+            tokenData.name = result.data.name;
+        });
+    } else  { // old routes did not require the chain
+        await axios.get(PCS_API + contractAddress).then(res => {
+            tokenData = res.data.data;
+            tokenData.price = parseFloat(tokenData.price);
+            tokenData.price_BNB = parseFloat(tokenData.price_BNB);
+          })
+          .catch(error=>{
+              console.log('boom');
+              return 404;
+          })
+    }
     return tokenData;
   }
 

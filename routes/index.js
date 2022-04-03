@@ -13,6 +13,8 @@ const abi = require('../components/abi/abi');
 const contracts = require('../components/contracts/contracts');
 const beans = require('../components/beans/controller');
 const { resourceLimits } = require('worker_threads');
+const { default: Web3 } = require('web3');
+const splassive = require('../components/splassive/controller');
 
 lp_contract = {}
 
@@ -188,6 +190,21 @@ router.get('/api/af/price/', (req, res) => {
 
 })
 
+router.get('/api/splassive/', (req, res) => {
+  lp_contract = {};
+  splassive.getSplassiveData().then(value => {
+    res.send(value);
+  });
+});
+
+router.get('/api/token/:chain/:token', (req, res) => {
+  console.log('get token ')
+  tokens.getTokenPrice(req.params.token, req.params.chain).then(value => {
+    console.log(value);
+    res.send(value);
+  })
+})
+
 router.get('/api/token/:token', (req, res) => {
   console.log('get token ')
   tokens.getTokenPrice(req.params.token).then(value => {
@@ -195,6 +212,8 @@ router.get('/api/token/:token', (req, res) => {
     res.send(value);
   })
 })
+
+
 
 
 router.get('/api/lp/:lp', (req, res) => {
