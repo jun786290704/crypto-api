@@ -16,6 +16,7 @@ const { resourceLimits } = require('worker_threads');
 const { default: Web3 } = require('web3');
 const splassive = require('../components/splassive/controller');
 const drip = require('../components/drip/controller');
+const piston = require('../components/piston/controller');
 
 lp_contract = {}
 
@@ -201,6 +202,13 @@ router.get('/api/splassive/', (req, res) => {
 router.get('/api/drip/', (req, res) => {
   lp_contract = {};
   drip.getDripData().then(value => {
+    res.send(value);
+  });
+});
+
+router.get('/api/piston/', (req, res) => {
+  lp_contract = {};
+  piston.getPistonData().then(value => {
     res.send(value);
   });
 });
