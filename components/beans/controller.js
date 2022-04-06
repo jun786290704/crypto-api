@@ -15,59 +15,63 @@ const AF_RATIO = 2592000 // used for both piggybank and garden
 
 
 async function getBeansData(contractAddress) {
-let bnb = 0;
+  let bnb = 0;
+  let miners = 0;
+  let rewardsPerBNB = 0;
+  let balance = 0;
   var contract = new web3.eth.Contract(abi.ABI_BEANS, contractAddress);
-  let results = await Promise.all([
-    contract.methods.getBalance().call(function (error, result) {
-        console.log(result)
-     }),
-  //  contract.methods.getEggsSinceLastHatch(2592000).call(function (error, result) { }),
-    
-  bnb = tokens.getTokenPrice('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c')
+  let beansData = {};
 
-  ]);
-  //let lpPerDay = 0;
+  await contract.methods.getBalance().call(function (error, result) {
+    console.log("BALANCE:");
+    console.log(result);
+    beansData.balance = toDec18(result);
+  }),
+    await contract.methods.calculateEggBuySimple(1000000000000000000n).call(function (error, result) {
+      beansData.minersPerBNB = Math.round(result / 1080000);
+      beansData.eggsPerBNB = beansData.minersPerBNB * 86400;
+    })
 
+    await contract.methods.calculateEggSell(beansData.eggsPerBNB).call(function (error, result) {
+      console.log(result);
+      beansData.rewardsPerBNB = toDec18(result);
+    })
 
-  //let lpPerPlant = toDec18(results[1] * .95);
-  return ({
-    balance: toDec18(results[0]),
-    bnb: results[1].price
-   // lpPerPlant: lpPerPlant,
-   // costPerPlant: lpPerPlant * lp_contract.price,
-  })
+    await tokens.getTokenPrice('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c').then(function (result) {
+      bnb = result;
+      beansData.bnb = bnb.price;
+      console.log(beansData);
+    })
+
+    beansData.marketEggs = toDec18(((beansData.balance*1000000000000000000)*beansData.eggsPerBNB-
+            (beansData.eggsPerBNB*beansData.rewardsPerBNB))/beansData.rewardsPerBNB);
+    beansData.rewardsPerDayUSD = beansData.rewardsPerBNB * beansData.bnb;
+
+  return beansData;
 }
 
 async function getBeansUserData(contractAddress, wallet) {
   console.log("time to get beans user data for " + contractAddress);
-  //console.log(abi.ABI_GARDEN);
   var contract = new web3.eth.Contract(abi.ABI_BEANS, contractAddress);
-  console.log("contract");
-  //console.log(contract);
   let miners = 0;
   let pendingEggs = 0;
   let pendingRewards = 0;
 
   await contract.methods.getEggsSinceLastHatch(wallet).call(function (error, result) {
-      pendingEggs = parseInt(result);
+    pendingEggs = parseInt(result);
 
-   }),
-  await contract.methods.calculateEggSell(pendingEggs).call(function (error, result) {
+  }),
+    await contract.methods.calculateEggSell(pendingEggs).call(function (error, result) {
       pendingRewards = toDec18(result);
-   }),
+    }),
 
-   await contract.methods.getMyMiners(wallet).call().then(result => {
-    miners = parseInt(result);
-  });
+    await contract.methods.getMyMiners(wallet).call().then(result => {
+      miners = parseInt(result);
+    });
 
   await contract.methods.calculateEggSell(miners * 86400).call().then(result => {
     rewardsPerDay = toDec18(result);
   })
-
-  
-
-
-  console.log("time to go");
 
   return ({
     pendingEggs: pendingEggs,
@@ -75,7 +79,6 @@ async function getBeansUserData(contractAddress, wallet) {
     rewardsPerDay: rewardsPerDay,
     miners: miners,
   })
-
 }
 
 async function getBNBPrice() {
@@ -88,28 +91,27 @@ async function getBNBPrice() {
 
 
 async function logWallet(wallet) {
-  console.log("Calling gardenUserData for wallet" + wallet);
+  console.log("Calling beansData for wallet" + wallet);
   const dbConnect = dbo.getDb();
-  let gardenData = {};
-  await tokens.getLPPrice(contracts.contracts.gardenpool).then(value => {
-    gardenData = value;
-  });
-  await getGardenData(contracts.contracts.garden).then(gardenValue => {
-    gardenData.gardenData = gardenValue;
-  });
-  await getGardenUserData(contracts.contracts.garden, wallet).then(gardenUserValue => {
-    gardenData.gardenData.user = gardenUserValue;
+  let beansData = {};
+
+  await getBeansData(contracts.contracts.beans).then(beansValue => {
+    beansData = beansValue;
   });
 
-  gardenData.createDate = new Date();
-  gardenData.wallet = wallet;
-  gardenData._id = null;  // make sure the loop does not have previous id
+  await getBeansUserData(contracts.contracts.beans, wallet).then(gardenUserValue => {
+    beansData.user = gardenUserValue;
+  });
+
+  beansData.createDate = new Date();
+  beansData.wallet = wallet;
+  beansData._id = null;  // make sure the loop does not have previous id
   console.log('saving wallet data');
   var myPromise = () => {
     return new Promise((resolve, reject) => {
       dbConnect
-        .collection("gardenrecords")
-        .insertOne(gardenData, function (err, result) {
+        .collection("beansrecords")
+        .insertOne(beansData, function (err, result) {
           if (err) console.log(err);
           result
           : resolve(result)
@@ -117,16 +119,16 @@ async function logWallet(wallet) {
     })
   }
   await myPromise();
-  gardenData = {};
+  beansData = {};
 }
 
-async function getWallets() {
+async function getWallets(query) {
   const dbConnect = dbo.getDb();
   var myPromise = () => {
     return new Promise((resolve, reject) => {
       dbConnect
         .collection("wallets")
-        .find({})
+        .find(query)
         .toArray(function (err, result) {
           err
             ? reject(err)
@@ -147,5 +149,5 @@ exports.getBeansData = getBeansData;
 exports.getBeansUserData = getBeansUserData;
 //exports.getAnimalFarmPrices = getAnimalFarmPrices;
 //exports.getPiggyBankData = getPiggyBankData;
-//exports.logWallet = logWallet;
-//exports.getWallets = getWallets;
+exports.logWallet = logWallet;
+exports.getWallets = getWallets;

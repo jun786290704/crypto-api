@@ -13,7 +13,7 @@ const dbo = require('../../db/conn');
 const AF_RATIO = 2592000 // used for both piggybank and garden
 
 
-
+// get a record from 24 hours earlier, compare marketEggs and contractBalance (or just LP Payout)
 async function getGardenData(contractAddress) {
   var seeds = 50000;
   var contract = new web3.eth.Contract(abi.ABI_GARDEN, contractAddress);
@@ -142,13 +142,13 @@ async function logWallet(wallet) {
   gardenData = {};
 }
 
-async function getWallets() {
+async function getWallets(query) {
   const dbConnect = dbo.getDb();
   var myPromise = () => {
     return new Promise((resolve, reject) => {
       dbConnect
         .collection("wallets")
-        .find({})
+        .find(query)
         .toArray(function (err, result) {
           err
             ? reject(err)

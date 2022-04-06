@@ -138,7 +138,8 @@ router.get('/api/af/gardenrecords/records/:wallet', (req, res) => {
 });
 
 router.get('/api/af/gardenrecords/process', async (req, res) => {
-  wallets = await animalfarm.getWallets();
+  const query = {"records.gardenrecords": true};
+  wallets = await animalfarm.getWallets(query);
   //console.log('wallets');
   //console.log(wallets);
     // foreach does not do async how oe would think :)
@@ -152,6 +153,14 @@ router.get('/api/af/gardenrecords/process', async (req, res) => {
     res.send('Complete');
 
 });
+
+router.get('/api/beans/', (req, res) => {
+  lp_contract = {};
+    let value = {};
+    beans.getBeansData(contracts.contracts.beans).then(beansValue => {
+      res.send(beansValue);
+    })
+  });
 
 router.get('/api/beans/:wallet', (req, res) => {
   lp_contract = {};
@@ -170,6 +179,36 @@ router.get('/api/beans/:wallet', (req, res) => {
     })
   });
 
+  router.get('/api/beansrecords/process', async (req, res) => {
+    const query = {"records.beansrecords": true};
+    wallets = await animalfarm.getWallets(query);
+    //console.log('wallets');
+    //console.log(wallets);
+      // foreach does not do async how oe would think :)
+      for (const wallet of wallets) {
+        //console.log('loop map');
+        //console.log(wallet);
+        await beans.logWallet(wallet.wallet);
+      }
+      //console.log('done');
+  
+      res.send('Complete');
+  
+  });
+
+  router.get('/api/beansrecords/records/:wallet', (req, res) => {
+    const dbConnect = dbo.getDb();
+    dbConnect
+      .collection("beansrecords")
+      .find({wallet:req.params.wallet})
+      .toArray(function (err, result) {
+        if (err) {
+            res.status(400).send("Error Fetching Data");
+        } else {
+          res.json(result);
+        }
+      })
+  });
 
 router.put('/api/af/wallet', (req, res) => {
   const dbConnect = dbo.getDb();
