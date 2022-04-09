@@ -3,6 +3,7 @@ const axios = require('axios');
 const Web3 = require('web3');
 const NODE_HTTP = process.env.NODE_HTTP;
 const web3 = new Web3(NODE_HTTP);
+const BSC_API = process.env.BSC_API;
 
 const abi = require('../abi/abi');
 const tokens = require('../tokens/controller');
@@ -10,8 +11,8 @@ const contracts = require('../contracts/contracts');
 
 const dbo = require('../../db/conn');
 
-const AF_RATIO = 2592000 // used for both piggybank and garden
-
+const startBlock  = "12401836";  // beans start block
+const endBlock    = "30774979";
 
 
 async function getBeansData(contractAddress) {
@@ -73,17 +74,87 @@ async function getBeansUserData(contractAddress, wallet) {
     rewardsPerDay = toDec18(result);
   })
 
-  return ({
+  var data = {
     pendingEggs: pendingEggs,
     pendingRewards: pendingRewards,
     rewardsPerDay: rewardsPerDay,
     miners: miners,
+  }
+
+  var extendedData = await getBeansExtendedData(contractAddress, wallet);
+  data.bnbSpent = extendedData.bnbSpent;
+  data.bnbReceived = extendedData.bnbReceived;
+  data.roi = extendedData.roi;
+  data.dailyRewardPercentage = data.rewardsPerDay / data.bnbSpent;
+
+  return data;
+}
+
+async function getBeansExtendedData(contractAddress, wallet) {
+  let eggsSold, eggsBought = 0;
+    eggsSold = await getEggsSold(wallet);
+    eggsBought = await getEggsBought(wallet);
+    const roi = eggsSold / eggsBought
+    console.log("Bought: " + eggsBought.toFixed(2) + " Sold: " + eggsSold.toFixed(2) + " ROI: " + (roi*100).toFixed(2) +"%");
+    return {
+        bnbSpent: eggsBought,
+        bnbReceived: eggsSold,
+        roi: roi
+    }
+}
+
+async function getEggsSold(wallet) {
+  let eggsSold = 0;
+  let value = 0;
+  url = "https://api.bscscan.com/api?module=account&action=txlistinternal&"
+      + "address=" + wallet
+      + "&startblock=" + startBlock + "&endblock=" + endBlock
+      + "&apikey=" + BSC_API;
+
+      console.log(url);
+
+  await axios.get(url).then(res => {
+      const data = res.data.result;
+      data.forEach(element => {
+          if (element.from == contracts.contracts.beans) {
+              var date = new Date(element.timeStamp * 1000);
+              value += parseInt(element.value);
+          }
+          eggsSold = toDec18(value);
+      })
   })
+  return (eggsSold);
+}
+
+async function getEggsBought(wallet) {
+  let eggsBought = 0;
+  let value = 0;
+  url = "https://api.bscscan.com/api?module=account&action=txlist&"
+      + "address=" + wallet
+      + "&startblock=" + startBlock + "&endblock=" + endBlock
+      + "&apikey=" + BSC_API;
+
+  await axios.get(url).then(res => {
+      let eggsSold = 0;
+      let value = 0;
+      if (res.data.message == "OK") {
+          const data = res.data.result;
+          data.forEach(element => {
+              if (element.to == contracts.contracts.beans) {
+                  var date = new Date(element.timeStamp * 1000);
+                  value += parseInt(element.value);
+              } 
+          })
+          eggsBought = toDec18(value);
+      } else {
+          return "FAILED";
+      }
+  })
+  return (eggsBought);
 }
 
 async function getBNBPrice() {
   bnb = await tokens.getTokenPrice('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c');
-
   return {
     bnb: bnb
   }
