@@ -114,7 +114,7 @@ function getMinerDetails(minerLabel) {
             endBlock: 33184468,
             buyMethod: 'calculateDiamondBuySimple(uint256)',
             sellMethod: 'calculateDiamondSell(uint256)',
-            getEggsMethod: 'getDiamondsSinceLastHatch(address)',
+            getEggsMethod: 'getDiamondsSinceLastHarvest(address)',
             getMinersMethod: 'getMyMiners(address)'
         }
 

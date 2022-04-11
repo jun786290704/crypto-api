@@ -17,6 +17,7 @@
     "mongodb": "^4.4.1",
     "morgan": "~1.9.1",
     "pug": "^3.0.2",
+    "serve-favicon": "^2.5.0",
     "swagger-autogen": "^2.20.5",
     "swagger-ui-express": "^4.3.0",
     "web3": "^1.7.1",

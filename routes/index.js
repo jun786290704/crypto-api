@@ -21,6 +21,7 @@ const piston = require('../components/piston/controller');
 const miner = require('../components/miner/controller');
 const logger = require('../logger/logger').logger;
 
+
 lp_contract = {}
 
 /* GET home page. */
