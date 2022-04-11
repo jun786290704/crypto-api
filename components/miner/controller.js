@@ -340,7 +340,7 @@ async function getEggsSold(minerLabel, wallet) {
     await axios.get(url).then(res => {
         const data = res.data.result;
         data.forEach(element => {
-            if (element.from == miner.contract) {
+            if (element.from.toLowerCase() == miner.contract.toLowerCase()) {
                 var date = new Date(element.timeStamp * 1000);
                 value += parseInt(element.value);
             }
