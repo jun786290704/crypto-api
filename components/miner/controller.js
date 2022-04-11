@@ -101,6 +101,23 @@ function getMinerDetails(minerLabel) {
             getMinersMethod: 'getMyMiners(address)'
         }
 
+    } else if (minerLabel == 'diamondmine') {
+        miner =
+        {
+            named: 'Diamond Mine',
+            label: 'diamondmine',
+            chain: 'avax',
+            contract: contracts.contracts.luckycat,
+            contractABI: abi.ABI_LUCKYCAT,
+            eggsPerMiner: 1080000,
+            startBlock: 13184468,
+            endBlock: 33184468,
+            buyMethod: 'calculateDiamondBuySimple(uint256)',
+            sellMethod: 'calculateDiamondSell(uint256)',
+            getEggsMethod: 'getDiamondsSinceLastHatch(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
+
     }
 
     return miner;
