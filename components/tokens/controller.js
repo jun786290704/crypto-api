@@ -5,7 +5,8 @@ const Web3 = require('web3');
 const NODE_HTTP = process.env.NODE_HTTP;
 const web3 = new Web3(NODE_HTTP);
 
-const abi = require('../abi/abi');
+const abi     = require('../abi/abi');
+const logger  = require('../../logger/logger').logger;
 
 const chains = JSON.parse(process.env.NODE_CHAINS);
 
@@ -19,19 +20,19 @@ async function getLPPrice(contractAddress) {
   
     let results = await Promise.all([
       Contract_LP.methods.totalSupply().call(function (error, result) {
-        if (error) { console.log(error); return false; };
+        if (error) { logger.info(error); return false; };
         lp_contract.supply = toDec18(result);
       }),
       Contract_LP.methods.getReserves().call(function (error, result) {
-        if (error) { console.log(error); return false; };
+        if (error) { logger.info(error); return false; };
         lp_contract.token0_reserve = toDec18(parseInt(result._reserve0));
         lp_contract.token1_reserve = toDec18(parseInt(result._reserve1));
       }),
       Contract_LP.methods.token0().call(function (error, result) {
-        if (error) { console.log(error); return false; };
+        if (error) { logger.info(error); return false; };
       }),
       Contract_LP.methods.token1().call(function (error, result) {
-        if (error) { console.log(error); return false; };
+        if (error) { logger.info(error); return false; };
       })
     ]);
   
@@ -76,6 +77,13 @@ async function getLPPrice(contractAddress) {
             tokenData.symbol = result.data.symbol;
             tokenData.name = result.data.name;
         });
+    } else if (chain.label =='ftm') { 
+      await geckoClient.coins.fetchCoinContractInfo(contractAddress, 'fantom').then(result => {
+        tokenData.price = result.data.market_data.current_price.usd;
+        tokenData.symbol = result.data.symbol;
+        tokenData.name = result.data.name;
+      });
+
     } else  { // old routes did not require the chain
         await axios.get(PCS_API + contractAddress).then(res => {
             tokenData = res.data.data;
@@ -83,7 +91,7 @@ async function getLPPrice(contractAddress) {
             tokenData.price_BNB = parseFloat(tokenData.price_BNB);
           })
           .catch(error=>{
-              console.log('boom');
+              logger.info('boom');
               return 404;
           })
     }

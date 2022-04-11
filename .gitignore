@@ -2,3 +2,6 @@ node_modules
 .env
 _wallets.json
 .gitignore
+devlog.log
+error.log
+*.log
