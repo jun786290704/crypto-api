@@ -84,6 +84,23 @@ function getMinerDetails(minerLabel) {
             getMinersMethod: 'getMyMiners(address)'
         }
 
+    } else if (minerLabel == 'luckycat') {
+        miner =
+        {
+            named: 'Lucky Cat',
+            label: 'luckycat',
+            chain: 'bsc',
+            contract: contracts.contracts.luckycat,
+            contractABI: abi.ABI_LUCKYCAT,
+            eggsPerMiner: 1080000,
+            startBlock: 16782143,
+            endBlock: 36782143,
+            buyMethod: 'calculateEggBuySimple(uint256)',
+            sellMethod: 'calculateEggSell(uint256)',
+            getEggsMethod: 'getEggsSinceLastHatch(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
+
     }
 
     return miner;

@@ -11,7 +11,8 @@ const contracts = {
     dripPool: '0xbff8a1f9b5165b787a00659216d7313354d25472',
     pistonPool: '0xdd52bd6cce78f3114ba83b04f006aec03f432779',
     cookedRice: '0x446BFC36541cC6b4832408Cc7E75A4e2D17CDC15',
-    spooky: '0x99f07e573a962e489ba0eb9042bda9f0b4be91cf'
+    spooky: '0x99f07e573a962e489ba0eb9042bda9f0b4be91cf',
+    luckycat: '0xb50e74a6b82f59c4058b5d798e3d9c9d9b8c6e16'
 }
 
 exports.contracts = contracts;
