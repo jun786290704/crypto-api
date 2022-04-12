@@ -188,6 +188,7 @@ router.get('/api/cookedrice/:wallet', (req, res) => {
 router.get('/api/miner/:minerLabel', (req, res) => {
   logger.info('miner route');
   miner.getMinerData(req.params.minerLabel).then(minerData => {
+    console.log(minerData);
     res.send(minerData);
   })
 })

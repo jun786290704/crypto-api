@@ -14,7 +14,7 @@ const contracts = {
     spooky: '0x99f07e573a962e489ba0eb9042bda9f0b4be91cf',
     luckycat: '0xb50e74a6b82f59c4058b5d798e3d9c9d9b8c6e16',
     diamondmine: '0x44d5AD38C7F0EE268Df167001Ead0A700b77c742',
-    spookedbeans: '0x059a10795792169c720A9550A6FfcA252ED65336'
+    spookedbeans: '0x63690090B52B1E6E685b88Ca365596b8edb0F379'
 }
 
 exports.contracts = contracts;
