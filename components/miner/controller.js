@@ -83,6 +83,22 @@ function getMinerDetails(minerLabel) {
             getEggsMethod: 'getBonesSinceLastHatch(address)',
             getMinersMethod: 'getMyMiners(address)'
         }
+    } else if (minerLabel == 'spookedbeans') {
+        miner =
+        {
+            named: 'Spooked Beans',
+            label: 'spookedbeans',
+            chain: 'ftm',
+            contract: contracts.contracts.spookedbeans,
+            contractABI: abi.ABI_SPOOKEDBEANS,
+            eggsPerMiner: 1080000,
+            startBlock: 35733677,
+            endBlock: 55395965,
+            buyMethod: 'calculateEggBuySimple(uint256)',
+            sellMethod: 'calculateEggSell(uint256)',
+            getEggsMethod: 'getEggsSinceLastHatch(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
 
     } else if (minerLabel == 'luckycat') {
         miner =
@@ -373,6 +389,7 @@ async function getEggsSold(minerLabel, wallet) {
 
     await axios.get(url).then(res => {
         const data = res.data.result;
+        logger.info(data);
         data.forEach(element => {
             if (element.from.toLowerCase() == miner.contract.toLowerCase()) {
                 var date = new Date(element.timeStamp * 1000);
