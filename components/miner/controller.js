@@ -156,14 +156,49 @@ async function getMinerData(minerlabel) {
     var contract = new web3.eth.Contract(miner.contractABI, miner.contract);
     let minerData = {};
     logger.info("Got Web3 and contract for getMinerData");
+    logger.info('Processing contract');
+    logger.info(miner.contract);
+    logger.info(chain.rpcURL);
 
-    minerData.balance = toDec18(await contract.methods.getBalance().call());
+    logger.info('getting balance');
+    await contract.methods.getBalance().call(function (err, resp) {
+        if (err) {
+            logger.error('ERROR');
+            logger.error(err);
+            return minerData;
+        }
+        else
+            minerData.balance = toDec18(resp)
+    });
+    logger.debug('miner.buyMethod');
+    await contract.methods[miner.buyMethod](1000000000000000000n).call(function (err, resp) {
+        if (err)
+            logger.error(err);
+        else {
+            if (resp && resp > 0)
+                minerData.minersPerToken = Math.round(resp / miner.eggsPerMiner);
+            else
+                minerData.minersPerToken = 0;
+        }
+    });
 
-    minerData.minersPerToken = Math.round(await contract.methods[miner.buyMethod](1000000000000000000n).call() / miner.eggsPerMiner)
     minerData.eggsPerToken = minerData.minersPerToken * 86400;
-    minerData.rewardsPerToken = toDec18(await contract.methods[miner.sellMethod](minerData.eggsPerToken).call());
+    logger.info('rewardsPerToken');
+    if (minerData.eggsPerToken && minerData.eggsPerToken > 0) {
+        await contract.methods[miner.sellMethod](minerData.eggsPerToken).call(function(err,resp) {
+            if (err) {
+                logger.error('ERROR');
+                logger.error(err);
+            } else  {
+                minerData.rewardsPerToken = toDec18(resp);
+            }
+        });
+    }
+    
+
     logger.info("getMinerData - time to get rewardToken");
     if (miner.token && miner.token.type == 'lp') {
+        logger.info('LP Token');
         minerData.rewardToken = {
             name: miner.token.name,
             price: (await tokens.getLPPrice(miner.token.address)).price
@@ -171,11 +206,13 @@ async function getMinerData(minerlabel) {
 
     }
     else {
+        logger.info('standard token');
         minerData.rewardToken = {
             name: chain.gasToken.name,
             price: (await tokens.getTokenPrice(chain.gasToken.address, chain.label)).price
         }
     }
+    logger.info('balanceUSD');
     minerData.balanceUSD = minerData.balance * minerData.rewardToken.price;
     logger.info("getMinerData - calculate market eggs");
     minerData.marketEggs = toDec18(((minerData.balance * 1000000000000000000) * minerData.eggsPerToken -
