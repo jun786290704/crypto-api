@@ -134,6 +134,23 @@ function getMinerDetails(minerLabel) {
             getMinersMethod: 'getMyMiners(address)'
         }
 
+    } else if (minerLabel == 'farmhouse') {
+        miner =
+        {
+            named: 'The Farmhouse',
+            label: 'farmhouse',
+            chain: 'matic',
+            contract: contracts.contracts.farmhouse,
+            contractABI: abi.ABI_FARMHOUSE,
+            eggsPerMiner: 1080000,
+            startBlock: 27005850,
+            endBlock: 67005850,
+            buyMethod: 'calculateSeedBuySimple(uint256)',
+            sellMethod: 'calculateSeedSell(uint256)',
+            getEggsMethod: 'getSeedsSincelastPlanted(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
+
     }
 
     return miner;

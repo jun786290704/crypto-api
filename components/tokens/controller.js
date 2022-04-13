@@ -83,6 +83,12 @@ async function getLPPrice(contractAddress) {
         tokenData.symbol = result.data.symbol;
         tokenData.name = result.data.name;
       });
+    } else if (chain.label =='matic') { 
+      await geckoClient.coins.fetchCoinContractInfo(contractAddress, 'polygon-pos').then(result => {
+        tokenData.price = result.data.market_data.current_price.usd;
+        tokenData.symbol = result.data.symbol;
+        tokenData.name = result.data.name;
+      });
 
     } else  { // old routes did not require the chain
         await axios.get(PCS_API + contractAddress).then(res => {
