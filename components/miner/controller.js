@@ -58,7 +58,7 @@ function getMinerDetails(minerLabel) {
             buyMethod: 'calculateEggBuySimple(uint256)',
             sellMethod: 'calculateEggSell(uint256)',
             getEggsMethod: 'getEggsSinceLastHatch(address)',
-            getMinersMethod: 'getMyMiners(address)'
+            getMinersMethod: 'hatcheryMiners(address)'
         }
     } else if (minerLabel == 'garden') {
         miner =
