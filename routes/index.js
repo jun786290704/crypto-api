@@ -185,160 +185,177 @@ router.get('/api/cookedrice/:wallet', (req, res) => {
   })
 });
 
-router.get('/api/miner/:minerLabel', (req, res) => {
-  logger.info('miner route');
-  miner.getMinerData(req.params.minerLabel).then(minerData => {
-    console.log(minerData);
-    res.send(minerData);
+router.get('/api/miners/:wallet', async (req, res) => {
+  miner.getWallet(req.params.wallet).then(response => {
+    logger.info('got wallet');
+    logger.info(response);
+    miner.getMinersByWallet(response).then(data => {
+      logger.info(data);
+      res.send(data);
+
+    })
   })
 })
 
-router.get('/api/miner/:minerLabel/:wallet', (req, res) => {
-  logger.info('route:  miner/label/wallet');
-  let minerData = {};
-  miner.getMinerData(req.params.minerLabel).then(response => {
-    minerData = response;
-    miner.getMinerUserData(req.params.minerLabel, req.params.wallet).then(userValue => {
-      minerData.user = userValue;
 
-      minerData.user.marketEggs = toDec18(((minerData.balance * 1000000000000000000) * minerData.user.pendingEggs -
-        (minerData.user.pendingEggs * minerData.user.pendingRewards)) / minerData.user.pendingRewards);
-      minerData.user.pendingRewardsUSD = minerData.user.pendingRewards * minerData.rewardToken.price;
-      minerData.user.rewardsPerDayUSD = minerData.user.rewardsPerDay * minerData.rewardToken.price;
+
+
+
+
+  router.get('/api/miner/:minerLabel', (req, res) => {
+    logger.info('miner route');
+    miner.getMinerData(req.params.minerLabel).then(minerData => {
+      console.log(minerData);
       res.send(minerData);
     })
   })
-})
 
+  router.get('/api/miner/:minerLabel/:wallet', (req, res) => {
+    logger.info('route:  miner/label/wallet');
+    let minerData = {};
+    miner.getMinerData(req.params.minerLabel).then(response => {
+      minerData = response;
+      miner.getMinerUserData(req.params.minerLabel, req.params.wallet).then(userValue => {
+        minerData.user = userValue;
 
-router.get('/api/beans/', (req, res) => {
-  logger.warn('DEPRICATED ROUTE - /api/beans');
-  miner.getMinerData('bakedbeans').then(minerData => {
-    res.send(minerData);
+        minerData.user.marketEggs = toDec18(((minerData.balance * 1000000000000000000) * minerData.user.pendingEggs -
+          (minerData.user.pendingEggs * minerData.user.pendingRewards)) / minerData.user.pendingRewards);
+        minerData.user.pendingRewardsUSD = minerData.user.pendingRewards * minerData.rewardToken.price;
+        minerData.user.rewardsPerDayUSD = minerData.user.rewardsPerDay * minerData.rewardToken.price;
+        res.send(minerData);
+      })
+    })
   })
-});
 
-router.get('/api/beans/:wallet', (req, res) => {
-  logger.warn('DEPRICATED ROUTE - /api/beans/wallet');
-  lp_contract = {};
-  let value = {};
-  beans.getBeansData(contracts.contracts.beans).then(beansValue => {
-    value.beansData = beansValue;
-    beans.getBeansUserData(contracts.contracts.beans, req.params.wallet).then(beansUserValue => {
-      value.beansData.user = beansUserValue;
-      //let secretSauce = (CONTRACTBAL*UINT256*EGGS-(EGGS*REWARDS))/REWARDS
-      value.beansData.user.marketEggs = toDec18(((value.beansData.balance * 1000000000000000000) * value.beansData.user.pendingEggs -
-        (value.beansData.user.pendingEggs * value.beansData.user.pendingRewards)) / value.beansData.user.pendingRewards);
-      value.beansData.user.pendingRewardsUSD = value.beansData.user.pendingRewards * value.beansData.bnb;
-      value.beansData.user.rewardsPerDayUSD = value.beansData.user.rewardsPerDay * value.beansData.bnb;
+
+  router.get('/api/beans/', (req, res) => {
+    logger.warn('DEPRICATED ROUTE - /api/beans');
+    miner.getMinerData('bakedbeans').then(minerData => {
+      res.send(minerData);
+    })
+  });
+
+  router.get('/api/beans/:wallet', (req, res) => {
+    logger.warn('DEPRICATED ROUTE - /api/beans/wallet');
+    lp_contract = {};
+    let value = {};
+    beans.getBeansData(contracts.contracts.beans).then(beansValue => {
+      value.beansData = beansValue;
+      beans.getBeansUserData(contracts.contracts.beans, req.params.wallet).then(beansUserValue => {
+        value.beansData.user = beansUserValue;
+        //let secretSauce = (CONTRACTBAL*UINT256*EGGS-(EGGS*REWARDS))/REWARDS
+        value.beansData.user.marketEggs = toDec18(((value.beansData.balance * 1000000000000000000) * value.beansData.user.pendingEggs -
+          (value.beansData.user.pendingEggs * value.beansData.user.pendingRewards)) / value.beansData.user.pendingRewards);
+        value.beansData.user.pendingRewardsUSD = value.beansData.user.pendingRewards * value.beansData.bnb;
+        value.beansData.user.rewardsPerDayUSD = value.beansData.user.rewardsPerDay * value.beansData.bnb;
+        res.send(value);
+      })
+    })
+  });
+
+  router.get('/api/beansrecords/process', async (req, res) => {
+    const query = { "records.beansrecords": true };
+    wallets = await animalfarm.getWallets(query);
+    for (const wallet of wallets) {
+      await beans.logWallet(wallet.wallet);
+    }
+
+    res.send('Complete');
+
+  });
+
+  router.get('/api/beansrecords/records/:wallet', (req, res) => {
+    const dbConnect = dbo.getDb();
+    dbConnect
+      .collection("beansrecords")
+      .find({ wallet: req.params.wallet })
+      .toArray(function (err, result) {
+        if (err) {
+          res.status(400).send("Error Fetching Data");
+        } else {
+          res.json(result);
+        }
+      })
+  });
+
+  router.put('/api/af/wallet', (req, res) => {
+    const dbConnect = dbo.getDb();
+    dbConnect
+      .collection("wallets")
+      .insertOne(req.body, function (err, result) {
+        if (err) {
+          res.status(400).send("Error Inserting Data");
+        } else {
+          logger.info('Added new record with id ${result.insertId}');
+          res.status(204).send();
+        }
+      })
+  });
+
+  router.get('/api/af/price/', (req, res) => {
+    animalfarm.getAnimalFarmPrices().then(value => {
+      res.send(value);
+    })
+
+  })
+
+  router.get('/api/splassive/', (req, res) => {
+    lp_contract = {};
+    splassive.getSplassiveData().then(value => {
+      res.send(value);
+    });
+  });
+
+  router.get('/api/drip/', (req, res) => {
+    lp_contract = {};
+    drip.getDripData().then(value => {
+      res.send(value);
+    });
+  });
+
+  router.get('/api/piston/', (req, res) => {
+    lp_contract = {};
+    piston.getPistonData().then(value => {
+      res.send(value);
+    });
+  });
+
+  router.get('/api/token/:chain/:token', (req, res) => {
+    logger.info('get token ')
+    tokens.getTokenPrice(req.params.token, req.params.chain).then(value => {
+      logger.info(value);
       res.send(value);
     })
   })
-});
 
-router.get('/api/beansrecords/process', async (req, res) => {
-  const query = { "records.beansrecords": true };
-  wallets = await animalfarm.getWallets(query);
-  for (const wallet of wallets) {
-    await beans.logWallet(wallet.wallet);
+  router.get('/api/token/:token', (req, res) => {
+    logger.info('get token ')
+    tokens.getTokenPrice(req.params.token).then(value => {
+      logger.info(value);
+      res.send(value);
+    })
+  })
+
+
+
+
+  router.get('/api/lp/:lp', (req, res) => {
+    lp_contract = {};
+    tokens.getLPPrice(req.params.lp).then(value => {
+      res.send(value);
+    });
+  });
+
+
+  formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  });
+
+  function toDec18(num) {
+    return num / 1000000000000000000;
   }
 
-  res.send('Complete');
-
-});
-
-router.get('/api/beansrecords/records/:wallet', (req, res) => {
-  const dbConnect = dbo.getDb();
-  dbConnect
-    .collection("beansrecords")
-    .find({ wallet: req.params.wallet })
-    .toArray(function (err, result) {
-      if (err) {
-        res.status(400).send("Error Fetching Data");
-      } else {
-        res.json(result);
-      }
-    })
-});
-
-router.put('/api/af/wallet', (req, res) => {
-  const dbConnect = dbo.getDb();
-  dbConnect
-    .collection("wallets")
-    .insertOne(req.body, function (err, result) {
-      if (err) {
-        res.status(400).send("Error Inserting Data");
-      } else {
-        logger.info('Added new record with id ${result.insertId}');
-        res.status(204).send();
-      }
-    })
-});
-
-router.get('/api/af/price/', (req, res) => {
-  animalfarm.getAnimalFarmPrices().then(value => {
-    res.send(value);
-  })
-
-})
-
-router.get('/api/splassive/', (req, res) => {
-  lp_contract = {};
-  splassive.getSplassiveData().then(value => {
-    res.send(value);
-  });
-});
-
-router.get('/api/drip/', (req, res) => {
-  lp_contract = {};
-  drip.getDripData().then(value => {
-    res.send(value);
-  });
-});
-
-router.get('/api/piston/', (req, res) => {
-  lp_contract = {};
-  piston.getPistonData().then(value => {
-    res.send(value);
-  });
-});
-
-router.get('/api/token/:chain/:token', (req, res) => {
-  logger.info('get token ')
-  tokens.getTokenPrice(req.params.token, req.params.chain).then(value => {
-    logger.info(value);
-    res.send(value);
-  })
-})
-
-router.get('/api/token/:token', (req, res) => {
-  logger.info('get token ')
-  tokens.getTokenPrice(req.params.token).then(value => {
-    logger.info(value);
-    res.send(value);
-  })
-})
 
 
-
-
-router.get('/api/lp/:lp', (req, res) => {
-  lp_contract = {};
-  tokens.getLPPrice(req.params.lp).then(value => {
-    res.send(value);
-  });
-});
-
-
-formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
-
-function toDec18(num) {
-  return num / 1000000000000000000;
-}
-
-
-
-module.exports = router;
+  module.exports = router;

@@ -15,7 +15,10 @@ const contracts = {
     luckycat: '0xb50e74a6b82f59c4058b5d798e3d9c9d9b8c6e16',
     diamondmine: '0x44d5AD38C7F0EE268Df167001Ead0A700b77c742',
     spookedbeans: '0x63690090B52B1E6E685b88Ca365596b8edb0F379',
-    farmhouse: '0x5AB47Dd39264a5D076566FC01A1612a1a982654e'
+    farmhouse: '0x5AB47Dd39264a5D076566FC01A1612a1a982654e',
+    roastBeef: '0xd81F5DB384d604D85D158FCb8E00341Aff200E22',
+    fishfarm: '0x8bea96dbe7c85127a68ad6916949670eb5c45e9c',
+    degenBNB: '0x5D44059ff7AD513B4C509eCA13c00F136298488f'
 }
 
 exports.contracts = contracts;

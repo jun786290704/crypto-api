@@ -44,6 +44,22 @@ function getMinerDetails(minerLabel) {
             getEggsMethod: 'getEggsSinceLastHatch(address)',
             getMinersMethod: 'getMyMiners(address)'
         }
+    } else if (minerLabel == 'roastbeef') {
+        miner =
+        {
+            named: 'Roast Beef',
+            label: 'roastbeef',
+            chain: 'bsc',
+            contract: contracts.contracts.roastBeef,
+            contractABI: abi.ABI_ROASTBEEF,
+            eggsPerMiner: 864000,
+            startBlock: 16960351,
+            endBlock: 32401836,
+            buyMethod: 'calculateEggBuySimple(uint256)',
+            sellMethod: 'calculateEggSell(uint256)',
+            getEggsMethod: 'getEggsSinceLastHatch(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
     } else if (minerLabel == 'garden') {
         miner =
         {
@@ -150,8 +166,42 @@ function getMinerDetails(minerLabel) {
             getEggsMethod: 'getSeedsSincelastPlanted(address)',
             getMinersMethod: 'getMyMiners(address)'
         }
+    } else if (minerLabel == 'fishfarm') {
+        miner =
+        {
+            named: 'Fish Farm',
+            label: 'fishfarm',
+            chain: 'avax',
+            contract: contracts.contracts.fishfarm,
+            contractABI: abi.ABI_FISHFARM,
+            eggsPerMiner: 1080000,
+            startBlock: 27005850,
+            endBlock: 67005850,
+            buyMethod: 'calculateBuy(uint256, uint256)',
+            sellMethod: 'calculateSell(uint256)',
+            getEggsMethod: 'getSeedsSincelastPlanted(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
+
+    } else if (minerLabel == 'degenbnb') {
+        miner =
+        {
+            named: 'Degen BNB',
+            label: 'degenbnb',
+            chain: 'bsc',
+            contract: contracts.contracts.degenBNB,
+            contractABI: abi.ABI_DEGENBNB,
+            eggsPerMiner: 1080000,
+            startBlock: 16862774,
+            endBlock: 67005850,
+            buyMethod: 'calculateCoinBuySimple(uint256)',
+            sellMethod: 'calculateCoinSell(uint256)',
+            getEggsMethod: 'getCoinsSinceLastHarvest(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
 
     }
+    
 
     return miner;
 }
@@ -235,6 +285,8 @@ async function getMinerData(minerlabel) {
     minerData.marketEggs = toDec18(((minerData.balance * 1000000000000000000) * minerData.eggsPerToken -
         (minerData.eggsPerToken * minerData.rewardsPerToken)) / minerData.rewardsPerToken);
     minerData.rewardsPerDayUSD = minerData.rewardsPerToken * minerData.rewardToken.price;
+
+    minerData.label = minerlabel;
 
     return minerData;
 }
@@ -523,6 +575,47 @@ async function logWallet(wallet) {
     // cookedRiceData = {};
 }
 
+async function getMinersByWallet(wallet) {
+    // gets a wallet, go through wallet.miners to get them all
+    logger.info('miner:getMinersByWallet(wallet');
+    logger.info(wallet);
+    let miningData = [];
+    for (const miner of wallet.miners) {
+        logger.info(miner);
+        let minerData = await getMinerData(miner);
+        minerData.user = await getMinerUserData(miner, wallet.wallet);
+        miningData.push(minerData);
+    }
+    logger.info(miningData);
+    return miningData;
+
+}
+
+async function getWallet(wallet) {
+    // const dbConnect = dbo.getDb();
+     const query = { "wallet": wallet };
+    logger.info("Query at miner:getWallet");
+    logger.info(query); 
+
+    const dbConnect = dbo.getDb();
+    var myPromise = () => {
+        return new Promise((resolve, reject) => {
+            dbConnect
+                .collection("wallets")
+                .findOne(query, function (err, result) {
+                    err
+                        ? reject(err)
+                        : resolve(result);
+                });
+        })
+    }
+
+    wallets = await myPromise();
+    logger.info('resolved');
+    logger.info(wallets);
+    return wallets;
+}
+
 async function getWallets(query) {
     const dbConnect = dbo.getDb();
     var myPromise = () => {
@@ -550,3 +643,5 @@ exports.getMinerData = getMinerData;
 exports.getMinerUserData = getMinerUserData;
 exports.logWallet = logWallet;
 exports.getWallets = getWallets;
+exports.getWallet = getWallet;
+exports.getMinersByWallet = getMinersByWallet;
