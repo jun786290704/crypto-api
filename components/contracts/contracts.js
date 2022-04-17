@@ -5,7 +5,7 @@ const contracts = {
     gardenpool: '0xa0feB3c81A36E885B6608DF7f0ff69dB97491b58',
     garden: '0x685bfdd3c2937744c13d7de0821c83191e3027ff',
     bakedBeans: '0xe2d26507981a4daaaa8040bae1846c14e0fb56bf',
-    splassive: '0x4ec58f9d205f9c919920313932cc71ec68d123c7',
+    splassive: '0xE16253892F126D068E711C2fdde6DB56969dBCf6',
     drip: '0xFFE811714ab35360b67eE195acE7C10D93f89D8C',
     dripToken: '0x20f663cea80face82acdfa3aae6862d246ce0333',
     dripPool: '0xbff8a1f9b5165b787a00659216d7313354d25472',
