@@ -9,6 +9,7 @@ const tokens = require('../tokens/controller');
 const contracts = require('../contracts/contracts');
 
 const dbo = require('../../db/conn');
+const { logger } = require('../../logger/logger');
 const dripContract = new web3.eth.Contract(abi.ABI_DRIP, "0xffe811714ab35360b67ee195ace7c10d93f89d8c");
 
 async function getDripData() {
@@ -28,6 +29,7 @@ async function getDripData() {
         let currentPrice = result.data[result.data.length-1];
         drip.dripPrice =currentPrice.value;
     })
+
   
     return drip;
   }
