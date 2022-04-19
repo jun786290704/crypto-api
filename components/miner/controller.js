@@ -713,26 +713,29 @@ async function logWallet(wallet) {
     logger.info('miner:logWallet');
 
     let walletDetail = await getWallet(wallet); // pass a wallet ID and get entire wallet object
+    if (walletDetail && walletDetail.miners) {
+        for (const miner of walletDetail.miners) {
+            const minerDetail = getMinerDetails(miner.label);
+            logger.info('getting start block');
+            const firstBlock = await getFirstBlock(miner.label, walletDetail);
+            logger.info('received first block');
+            logger.info(firstBlock);
+            const startBlock = firstBlock || minerDetail.startBlock;
+            const endBlock = await getLastBlock(miner.label);
+            let minerData = await getMinerData(miner.label, walletDetail.wallet);
+            minerData.user = await getMinerUserData(miner.label, walletDetail.wallet);
+            const eggsSoldRecords = await getEggsSold(miner.label, walletDetail.wallet, startBlock, endBlock);
+            const eggsBuyRecords = await getEggsBought(miner.label, walletDetail.wallet, startBlock, endBlock);
+            logger.info('finished retrieving data for a logWallet loop')
+    
+            // LOG MINER DATA
+            logRecord(minerData);
+            logTransactions(eggsBuyRecords);
+            logTransactions(eggsSoldRecords);
+        }
 
-    for (const miner of walletDetail.miners) {
-        const minerDetail = getMinerDetails(miner.label);
-        logger.info('getting start block');
-        const firstBlock = await getFirstBlock(miner.label, walletDetail);
-        logger.info('received first block');
-        logger.info(firstBlock);
-        const startBlock = firstBlock || minerDetail.startBlock;
-        const endBlock = await getLastBlock(miner.label);
-        let minerData = await getMinerData(miner.label, walletDetail.wallet);
-        minerData.user = await getMinerUserData(miner.label, walletDetail.wallet);
-        const eggsSoldRecords = await getEggsSold(miner.label, walletDetail.wallet, startBlock, endBlock);
-        const eggsBuyRecords = await getEggsBought(miner.label, walletDetail.wallet, startBlock, endBlock);
-        logger.info('finished retrieving data for a logWallet loop')
-
-        // LOG MINER DATA
-        logRecord(minerData);
-        logTransactions(eggsBuyRecords);
-        logTransactions(eggsSoldRecords);
     }
+    
 }
 
 async function getFirstBlock(minerLabel, wallet) {

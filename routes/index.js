@@ -164,11 +164,18 @@ router.get('/api/miners/:wallet', async (req, res) => {
   miner.getWallet(req.params.wallet).then(response => {
     logger.info('got wallet');
     logger.info(response);
+    if (response && response.miners && response.miners.length>0) {
+      logger.info(response);
     miner.getMinersByWallet(response).then(data => {
       logger.info(data);
       res.send(data);
 
     })
+
+    } else {
+      res.send([]);
+    }
+    
   })
 })
 
