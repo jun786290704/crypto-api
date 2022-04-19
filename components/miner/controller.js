@@ -7,6 +7,8 @@ const dbo = require('../../db/conn');
 const logger = require('../../logger/logger').logger;
 
 const Web3 = require('web3');
+const { LoggerLevel, Logger } = require('mongodb');
+const e = require('express');
 
 function getMinerDetails(minerLabel) {
     let miner = {};
@@ -14,7 +16,7 @@ function getMinerDetails(minerLabel) {
     if (minerLabel == 'cookedrice') {
         miner =
         {
-            named: 'Cooked Rice',
+            name: 'Cooked Rice',
             label: 'cookedrice',
             chain: 'avax',
             contract: contracts.contracts.cookedRice,
@@ -31,7 +33,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'bakedbeans') {
         miner =
         {
-            named: 'Baked Beans',
+            name: 'Baked Beans',
             label: 'bakedbeans',
             chain: 'bsc',
             contract: contracts.contracts.bakedBeans,
@@ -44,10 +46,26 @@ function getMinerDetails(minerLabel) {
             getEggsMethod: 'getEggsSinceLastHatch(address)',
             getMinersMethod: 'getMyMiners(address)'
         }
+    } else if (minerLabel == 'grinchbucks') {
+        miner =
+        {
+            name: 'Grinch Bucks',
+            label: 'grinchbucks',
+            chain: 'bsc',
+            contract: contracts.contracts.grinchBucks,
+            contractABI: abi.ABI_GRINCHBUCKS,
+            eggsPerMiner: 1080000,
+            startBlock: 17062675,
+            endBlock: 32401836,
+            buyMethod: 'calculateEggBuySimple(uint256)',
+            sellMethod: 'calculateEggSell(uint256)',
+            getEggsMethod: 'getEggsSinceLastHatch(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
     } else if (minerLabel == 'roastbeef') {
         miner =
         {
-            named: 'Roast Beef',
+            name: 'Roast Beef',
             label: 'roastbeef',
             chain: 'bsc',
             contract: contracts.contracts.roastBeef,
@@ -63,7 +81,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'garden') {
         miner =
         {
-            named: 'Animal Farm Garden',
+            name: 'Animal Farm Garden',
             label: 'garden',
             chain: 'bsc',
             contract: contracts.contracts.garden,
@@ -86,7 +104,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'spookyminer') {
         miner =
         {
-            named: 'Spooky Miner',
+            name: 'Spooky Miner',
             label: 'spookyminer',
             chain: 'ftm',
             contract: contracts.contracts.spooky,
@@ -102,7 +120,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'spookedbeans') {
         miner =
         {
-            named: 'Spooked Beans',
+            name: 'Spooked Beans',
             label: 'spookedbeans',
             chain: 'ftm',
             contract: contracts.contracts.spookedbeans,
@@ -119,7 +137,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'luckycat') {
         miner =
         {
-            named: 'Lucky Cat',
+            name: 'Lucky Cat',
             label: 'luckycat',
             chain: 'bsc',
             contract: contracts.contracts.luckycat,
@@ -136,7 +154,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'diamondmine') {
         miner =
         {
-            named: 'Diamond Mine',
+            name: 'Diamond Mine',
             label: 'diamondmine',
             chain: 'avax',
             contract: contracts.contracts.diamondmine,
@@ -153,7 +171,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'farmhouse') {
         miner =
         {
-            named: 'The Farmhouse',
+            name: 'The Farmhouse',
             label: 'farmhouse',
             chain: 'matic',
             contract: contracts.contracts.farmhouse,
@@ -169,7 +187,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'fishfarm') {
         miner =
         {
-            named: 'Fish Farm',
+            name: 'Fish Farm',
             label: 'fishfarm',
             chain: 'avax',
             contract: contracts.contracts.fishfarm,
@@ -186,7 +204,7 @@ function getMinerDetails(minerLabel) {
     } else if (minerLabel == 'degenbnb') {
         miner =
         {
-            named: 'Degen BNB',
+            name: 'Degen BNB',
             label: 'degenbnb',
             chain: 'bsc',
             contract: contracts.contracts.degenBNB,
@@ -201,7 +219,7 @@ function getMinerDetails(minerLabel) {
         }
 
     }
-    
+
 
     return miner;
 }
@@ -211,7 +229,7 @@ function getChainDetails(chain) {
     return minerchain;
 }
 
-async function getMinerData(minerlabel) {
+async function getMinerData(minerlabel, wallet) {
     logger.info(`The Miner Label is ${minerlabel}`);
 
     let miner = getMinerDetails(minerlabel);
@@ -252,16 +270,16 @@ async function getMinerData(minerlabel) {
     minerData.eggsPerToken = minerData.minersPerToken * 86400;
     logger.info('rewardsPerToken');
     if (minerData.eggsPerToken && minerData.eggsPerToken > 0) {
-        await contract.methods[miner.sellMethod](minerData.eggsPerToken).call(function(err,resp) {
+        await contract.methods[miner.sellMethod](minerData.eggsPerToken).call(function (err, resp) {
             if (err) {
                 logger.error('ERROR');
                 logger.error(err);
-            } else  {
+            } else {
                 minerData.rewardsPerToken = toDec18(resp);
             }
         });
     }
-    
+
 
     logger.info("getMinerData - time to get rewardToken");
     if (miner.token && miner.token.type == 'lp') {
@@ -286,7 +304,11 @@ async function getMinerData(minerlabel) {
         (minerData.eggsPerToken * minerData.rewardsPerToken)) / minerData.rewardsPerToken);
     minerData.rewardsPerDayUSD = minerData.rewardsPerToken * minerData.rewardToken.price;
 
+    minerData.date = new Date();
     minerData.label = minerlabel;
+    minerData.name = miner.name;
+    if (wallet)
+        minerData.wallet = wallet;
 
     return minerData;
 }
@@ -296,7 +318,7 @@ function checkAddress(address) {
     return web3.utils.isAddress(address)
 }
 
-async function getMinerUserData(minerLabel, wallet) {
+async function getMinerUserData(minerLabel, wallet, fetchExtended) {
 
     let miner = getMinerDetails(minerLabel);
     let chain = getChainDetails(miner.chain);
@@ -364,16 +386,19 @@ async function getMinerUserData(minerLabel, wallet) {
         pendingRewards: pendingRewards,
         rewardsPerDay: rewardsPerDay,
         miners: miners,
+        wallet: wallet
     }
 
-    logger.debug(data);
+    logger.info('Fetch Extended? ' + fetchExtended);
+    if (fetchExtended) {
+        var extendedData = await getMinerUserExtendedData(minerLabel, wallet);
+        logger.debug(extendedData);
+        data.tokensSpent = extendedData.tokensSpent;
+        data.tokensReceived = extendedData.tokensReceived;
+        data.roi = extendedData.roi;
+        data.dailyRewardPercentage = data.rewardsPerDay / data.tokensSpent;
+    }
 
-    var extendedData = await getMinerUserExtendedData(minerLabel, wallet);
-    logger.debug(extendedData);
-    data.tokensSpent = extendedData.tokensSpent;
-    data.tokensReceived = extendedData.tokensReceived;
-    data.roi = extendedData.roi;
-    data.dailyRewardPercentage = data.rewardsPerDay / data.tokensSpent;
 
     logger.info('sending back user and extended data');
     logger.info(data);
@@ -401,13 +426,13 @@ async function getMinerUserExtendedData(minerLabel, wallet) {
         eggsBought = eggs.bought;
 
     } else {
-        eggsSold = await getEggsSold(minerLabel, wallet);
-        eggsBought = await getEggsBought(minerLabel, wallet);
+        eggsSold = await getEggsSold(minerLabel, wallet, 0, 0, true);
+        eggsBought = await getEggsBought(minerLabel, wallet, 0, 0, true);
     }
 
     logger.info('EGGS SOLD:' + eggsSold);
     const roi = eggsSold / eggsBought
-    logger.info("Bought: " + eggsBought.toFixed(2) + " Sold: " + eggsSold.toFixed(2) + " ROI: " + (roi * 100).toFixed(2) + "%");
+    // logger.info("Bought: " + eggsBought.toFixed(2) + " Sold: " + eggsSold.toFixed(2) + " ROI: " + (roi * 100).toFixed(2) + "%");
     return {
         tokensSpent: eggsBought,
         tokensReceived: eggsSold,
@@ -474,10 +499,15 @@ async function getTransactions(minerLabel, wallet) {
     }
 }
 
-async function getEggsSold(minerLabel, wallet) {
+async function getEggsSold(minerLabel, wallet, start, end, totalOnly) {
 
     let miner = getMinerDetails(minerLabel);
     let chain = getChainDetails(miner.chain);
+    let soldLogs = [];
+
+    logger.info('miner:getEggsSold')
+    logger.info(minerLabel + ' ' + wallet + ' ' + start + ' ' + end);
+
 
     if (!checkAddress(wallet)) {
         logger.warn('INVALID WALLET SENT TO getMinerUserData');
@@ -486,31 +516,79 @@ async function getEggsSold(minerLabel, wallet) {
 
     let eggsSold = 0;
     let value = 0;
+
+    if (start)
+        startBlock = start
+    else
+        startBlock = miner.startBlock;
+
+    if (end)
+        endBlock = end
+    else
+        endBlock = miner.endBlock
+
     url = chain.scanAPIURL + "?module=account&action=txlistinternal&"
         + "address=" + wallet
-        + "&startblock=" + miner.startBlock + "&endblock=" + miner.endBlock
+        + "&startblock=" + startBlock + "&endblock=" + endBlock
         + "&apikey=" + chain.scanAPIKey;
 
+    logger.info('eggs sold url')
     logger.info(url);
 
     await axios.get(url).then(res => {
         const data = res.data.result;
-        logger.info(data);
         data.forEach(element => {
             if (element.from.toLowerCase() == miner.contract.toLowerCase()) {
                 var date = new Date(element.timeStamp * 1000);
                 value += parseInt(element.value);
+                let soldLog = {
+                    amount: parseInt(element.value),
+                    from: element.from,
+                    to: element.to,
+                    date: date,
+                    block: parseInt(element.blockNumber),
+                    timeStamp: element.timeStamp,
+                    hash: element.hash,
+                    wallet: wallet,
+                    miner: minerLabel,
+                    totalRewardsClaimed: value,
+                    direction: "incoming"
+                }
+                soldLogs.push(soldLog);
+
             }
+            // SAVE TO MONGO
+
             eggsSold = toDec18(value);
         })
     })
-    return (eggsSold);
+    //await logRecords(soldLogs);
+    if (totalOnly)
+        return eggsSold;
+    else
+        return (soldLogs);
 }
 
-async function getEggsBought(minerLabel, wallet) {
+async function getEggsBought(minerLabel, wallet, start, end, totalOnly) {
 
     let miner = getMinerDetails(minerLabel);
     let chain = getChainDetails(miner.chain);
+    let buyLogs = [];
+
+    const web3 = new Web3(chain.rpcURL);
+
+    logger.info('miner:getEggsBought')
+    logger.info(minerLabel + ' ' + wallet + ' ' + start + ' ' + end);
+
+    if (start)
+        startBlock = start
+    else
+        startBlock = miner.startBlock;
+
+    if (end)
+        endBlock = end
+    else
+        endBlock = miner.endBlock
 
     if (!checkAddress(wallet)) {
         logger.warn('INVALID WALLET SENT TO getMinerUserData');
@@ -521,7 +599,7 @@ async function getEggsBought(minerLabel, wallet) {
     let value = 0;
     url = chain.scanAPIURL + "?module=account&action=txlist&"
         + "address=" + wallet
-        + "&startblock=" + miner.startBlock + "&endblock=" + miner.endBlock
+        + "&startblock=" + startBlock + "&endblock=" + endBlock
         + "&apikey=" + chain.scanAPIKey;
 
     await axios.get(url).then(res => {
@@ -530,9 +608,25 @@ async function getEggsBought(minerLabel, wallet) {
         if (res.data.message == "OK") {
             const data = res.data.result;
             data.forEach(element => {
-                if (element.to.toLowerCase() == miner.contract.toLowerCase()) {
+                if (element.to.toLowerCase() == miner.contract.toLowerCase() && element.isError != "1") {
+                    logger.info(element);
                     var date = new Date(element.timeStamp * 1000);
                     value += parseInt(element.value);
+                    let buyLog = {
+                        amount: parseInt(element.value),
+                        from: element.from,
+                        to: element.to,
+                        date: date,
+                        block: parseInt(element.blockNumber),
+                        timeStamp: element.timeStamp,
+                        hash: element.hash,
+                        wallet: wallet,
+                        miner: minerLabel,
+                        direction: "outgoing"
+                    }
+
+                    if (buyLog.amount > 0)
+                        buyLogs.push(buyLog);
                 }
             })
             eggsBought = toDec18(value);
@@ -540,83 +634,236 @@ async function getEggsBought(minerLabel, wallet) {
             return "FAILED";
         }
     })
-    return (eggsBought);
+    if (totalOnly)
+        return eggsBought;
+    else
+        return (buyLogs);
+}
+
+async function logTransactions(transactions) {
+    const dbConnect = dbo.getDb();
+
+    logger.info('saving transactions');
+    var myPromise = () => {
+        return new Promise((resolve, reject) => {
+            transactions.forEach(record => {
+                dbConnect
+                    .collection("minertransactions")
+                    .insertOne(record, function (err, result) {
+                        if (err) {
+                            logger.info(err);
+                            reject(err);
+                        }
+                        result
+                        : resolve(result)
+                    })
+
+            })
+
+        })
+    }
+    let result = await myPromise();
+    logger.info('done saving transactions');
+}
+
+async function logRecord(record) {
+    const dbConnect = dbo.getDb();
+
+    logger.info('saving record');
+    var myPromise = () => {
+        return new Promise((resolve, reject) => {
+
+            dbConnect
+                .collection("minerrecords")
+                .insertOne(record, function (err, result) {
+                    if (err) {
+                        logger.info(err);
+                        reject(err);
+                    }
+                    result
+                    : resolve(result)
+                })
+        })
+    }
+    let result = await myPromise();
+    logger.info('done saving record');
 }
 
 
 async function logWallet(wallet) {
-    // const dbConnect = dbo.getDb();
-    // let cookedRiceData = {};
+    const dbConnect = dbo.getDb();
+    let minerData = {};
 
-    // await getcookedRiceData(contracts.contracts.cookedRice).then(cookedRiceValue => {
-    //     cookedRiceData = cookedRiceValue;
-    // });
+    logger.info('miner:logWallet');
 
-    // await getcookedRiceUserData(contracts.contracts.cookedRice, wallet).then(gardenUserValue => {
-    //     cookedRiceData.user = gardenUserValue;
-    // });
+    let walletDetail = await getWallet(wallet); // pass a wallet ID and get entire wallet object
 
-    // cookedRiceData.createDate = new Date();
-    // cookedRiceData.wallet = wallet;
-    // cookedRiceData._id = null;  // make sure the loop does not have previous id
-    // logger.info('saving wallet data');
-    // var myPromise = () => {
-    //     return new Promise((resolve, reject) => {
-    //         dbConnect
-    //             .collection("cookedRicerecords")
-    //             .insertOne(cookedRiceData, function (err, result) {
-    //                 if (err) logger.info(err);
-    //                 result
-    //                 : resolve(result)
-    //             })
-    //     })
-    // }
-    // await myPromise();
-    // cookedRiceData = {};
+    for (const miner of walletDetail.miners) {
+        const minerDetail = getMinerDetails(miner.label);
+        logger.info('getting start block');
+        const firstBlock = await getFirstBlock(miner.label, walletDetail);
+        logger.info('received first block');
+        logger.info(firstBlock);
+        const startBlock = firstBlock || minerDetail.startBlock;
+        const endBlock = await getLastBlock(miner.label);
+        let minerData = await getMinerData(miner.label, walletDetail.wallet);
+        minerData.user = await getMinerUserData(miner.label, walletDetail.wallet);
+        const eggsSoldRecords = await getEggsSold(miner.label, walletDetail.wallet, startBlock, endBlock);
+        const eggsBuyRecords = await getEggsBought(miner.label, walletDetail.wallet, startBlock, endBlock);
+        logger.info('finished retrieving data for a logWallet loop')
+
+        // LOG MINER DATA
+        logRecord(minerData);
+        logTransactions(eggsBuyRecords);
+        logTransactions(eggsSoldRecords);
+    }
+}
+
+async function getFirstBlock(minerLabel, wallet) {
+    // if we have stored data for that miner, get the last record and block
+    // if not, use the default start record
+    logger.info('miner:getFirstBlock(wallet)');
+    const query = { miner: minerLabel, wallet: wallet.wallet }
+
+    logger.info(query);
+    const dbConnect = dbo.getDb();
+    const lastRecord = await dbConnect.collection("minertransactions").find(query).sort({ block: -1 }).limit(1).toArray();
+    if (lastRecord && lastRecord[0])
+        return lastRecord[0].block + 1
+    else
+        return null;
+
+}
+
+async function getLastBlock(minerlabel) {
+
+    logger.info('getlastblock(minerlabel)')
+    logger.info(minerlabel)
+
+    let miner = getMinerDetails(minerlabel);
+    let chain = getChainDetails(miner.chain);
+
+    logger.info("Trying to get Web3 and contract for getMinerData");
+
+    const web3 = new Web3(chain.rpcURL);
+    const lastBlock = await web3.eth.getBlockNumber();
+    logger.info('last block: ' + lastBlock)
+    return lastBlock * 1.4; // solve issue of last block, well, not being the last block...
+
 }
 
 async function getMinersByWallet(wallet) {
     // gets a wallet, go through wallet.miners to get them all
-    logger.info('miner:getMinersByWallet(wallet');
+    logger.info('miner:getMinersByWallet(wallet)');
     logger.info(wallet);
-    let miningData = [];
-    for (const miner of wallet.miners) {
-        logger.info(miner);
-        let minerData = await getMinerData(miner);
-        minerData.user = await getMinerUserData(miner, wallet.wallet);
-        miningData.push(minerData);
-    }
-    logger.info(miningData);
-    return miningData;
+    const dbConnect = dbo.getDb();
+    let miners = [];
+    let foo = [];
+    let bought = {};
+    for (const walletMiner of wallet.miners) {
+        bought = {};
+        let aggQuery = [
+            {
+                '$match': {
+                    'wallet': wallet.wallet.toLowerCase(),
+                    'label': walletMiner.label
+                }
+            }, {
+                '$sort': {
+                    'date': -1
+                }
+            }, {
+                '$limit': 1
+            }
+        ]
+        // get amount bought and spent
+        let boughtAgg = [
+            {
+                '$match': {
+                    'miner': walletMiner.label,
+                    '$expr': {
+                        '$eq': [
+                            '$from', wallet.wallet.toLowerCase()
+                        ]
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$wallet',
+                    'totalSpend': {
+                        '$sum': {
+                            '$divide': [
+                                '$amount', 1000000000000000000
+                            ]
+                        }
+                    }
+                }
+            }
+        ]
+        let soldAgg =
+            [
+                {
+                    '$match': {
+                        'miner': walletMiner.label,
+                        '$expr': {
+                            '$eq': [
+                                '$to', wallet.wallet.toLowerCase()
+                            ]
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$wallet',
+                        'totalReceived': {
+                            '$sum': {
+                                '$divide': [
+                                    '$amount', 1000000000000000000
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        foo = await dbConnect.collection('minerrecords').aggregate(aggQuery).toArray();
+        logger.info('got miner info:' + walletMiner.label)
+        bought = await dbConnect.collection('minertransactions').aggregate(boughtAgg).toArray();
+        logger.info('got bought info:' + walletMiner.label)
+        sold = await dbConnect.collection('minertransactions').aggregate(soldAgg).toArray();
+        logger.info('got sold info:' + walletMiner.label)
+        logger.info('foo length: ' + foo[0].length)
+        if (foo && foo[0]) {
+            if (bought && bought[0] && bought[0].totalSpend)
+                foo[0].user.tokensSpent = bought[0].totalSpend;
+            else
+                foo[0].user.tokensSpent = 0;
+            if (sold && sold[0] && sold[0].totalReceived)
+                foo[0].user.tokensReceived = sold[0].totalReceived;
+            else
+                foo[0].user.tokensReceived = 0;
+            miners.push(foo[0]);
+        }
 
+    }
+    return miners;
 }
 
 async function getWallet(wallet) {
     // const dbConnect = dbo.getDb();
-     const query = { "wallet": wallet };
+    const query = { "wallet": wallet.toLowerCase() };
     logger.info("Query at miner:getWallet");
-    logger.info(query); 
+    logger.info(query);
 
     const dbConnect = dbo.getDb();
-    var myPromise = () => {
-        return new Promise((resolve, reject) => {
-            dbConnect
-                .collection("wallets")
-                .findOne(query, function (err, result) {
-                    err
-                        ? reject(err)
-                        : resolve(result);
-                });
-        })
-    }
+    const walletDetail = dbConnect.collection("wallets").findOne(query)
 
-    wallets = await myPromise();
     logger.info('resolved');
-    logger.info(wallets);
-    return wallets;
+    logger.info(walletDetail);
+    return walletDetail;
 }
 
 async function getWallets(query) {
+    logger.info('miner:getWallets(query)')
+    logger.info(query);
     const dbConnect = dbo.getDb();
     var myPromise = () => {
         return new Promise((resolve, reject) => {

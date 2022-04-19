@@ -160,31 +160,6 @@ router.get('/api/af/gardenrecords/process', async (req, res) => {
 
 });
 
-router.get('/api/cookedrice/', (req, res) => {
-  logger.warn('DEPRICATED ROUTE - /api/cookedrice');
-  miner.getMinerData('cookedrice').then(minerData => {
-    res.send(minerData);
-  })
-});
-
-router.get('/api/cookedrice/:wallet', (req, res) => {
-  logger.warn('DEPRICATED ROUTE - /api/cookedrice/wallet');
-  lp_contract = {};
-  let value = {};
-  miner.getMinerData('cookedrice').then(response => {
-    value.data = response;
-    miner.getMinerUserData('cookedrice', req.params.wallet).then(userValue => {
-      value.data.user = userValue;
-
-      value.data.user.marketEggs = toDec18(((value.data.balance * 1000000000000000000) * value.data.user.pendingEggs -
-        (value.data.user.pendingEggs * value.data.user.pendingRewards)) / value.data.user.pendingRewards);
-      value.data.user.pendingRewardsUSD = value.data.user.pendingRewards * value.data.token;
-      value.data.user.rewardsPerDayUSD = value.data.user.rewardsPerDay * value.data.token;
-      res.send(value);
-    })
-  })
-});
-
 router.get('/api/miners/:wallet', async (req, res) => {
   miner.getWallet(req.params.wallet).then(response => {
     logger.info('got wallet');
@@ -196,9 +171,6 @@ router.get('/api/miners/:wallet', async (req, res) => {
     })
   })
 })
-
-
-
 
 
 
@@ -215,7 +187,7 @@ router.get('/api/miners/:wallet', async (req, res) => {
     let minerData = {};
     miner.getMinerData(req.params.minerLabel).then(response => {
       minerData = response;
-      miner.getMinerUserData(req.params.minerLabel, req.params.wallet).then(userValue => {
+      miner.getMinerUserData(req.params.minerLabel, req.params.wallet, true).then(userValue => {
         minerData.user = userValue;
 
         minerData.user.marketEggs = toDec18(((minerData.balance * 1000000000000000000) * minerData.user.pendingEggs -
@@ -227,37 +199,26 @@ router.get('/api/miners/:wallet', async (req, res) => {
     })
   })
 
-
-  router.get('/api/beans/', (req, res) => {
-    logger.warn('DEPRICATED ROUTE - /api/beans');
-    miner.getMinerData('bakedbeans').then(minerData => {
-      res.send(minerData);
-    })
-  });
-
-  router.get('/api/beans/:wallet', (req, res) => {
-    logger.warn('DEPRICATED ROUTE - /api/beans/wallet');
-    lp_contract = {};
-    let value = {};
-    beans.getBeansData(contracts.contracts.beans).then(beansValue => {
-      value.beansData = beansValue;
-      beans.getBeansUserData(contracts.contracts.beans, req.params.wallet).then(beansUserValue => {
-        value.beansData.user = beansUserValue;
-        //let secretSauce = (CONTRACTBAL*UINT256*EGGS-(EGGS*REWARDS))/REWARDS
-        value.beansData.user.marketEggs = toDec18(((value.beansData.balance * 1000000000000000000) * value.beansData.user.pendingEggs -
-          (value.beansData.user.pendingEggs * value.beansData.user.pendingRewards)) / value.beansData.user.pendingRewards);
-        value.beansData.user.pendingRewardsUSD = value.beansData.user.pendingRewards * value.beansData.bnb;
-        value.beansData.user.rewardsPerDayUSD = value.beansData.user.rewardsPerDay * value.beansData.bnb;
-        res.send(value);
-      })
-    })
-  });
-
   router.get('/api/beansrecords/process', async (req, res) => {
     const query = { "records.beansrecords": true };
     wallets = await animalfarm.getWallets(query);
     for (const wallet of wallets) {
       await beans.logWallet(wallet.wallet);
+    }
+
+    res.send('Complete');
+
+  });
+
+  router.get('/api/miners/records/process', async (req, res) => {
+    logger.info('ROUTE /api/miners/records/process');
+    // process all wallets and miners and log to db.  should be called via cron/curl
+   
+    const query = {miners: {$exists:true}};
+    const wallets = await miner.getWallets(query);
+
+    for (const wallet of wallets) {
+      await miner.logWallet(wallet.wallet);
     }
 
     res.send('Complete');
