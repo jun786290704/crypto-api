@@ -46,6 +46,22 @@ function getMinerDetails(minerLabel) {
             getEggsMethod: 'getEggsSinceLastHatch(address)',
             getMinersMethod: 'getMyMiners(address)'
         }
+    } else if (minerLabel == 'busdfarmer') {
+        miner =
+        {
+            name: 'BUSD Farmer',
+            label: 'busdfarmer',
+            chain: 'bsc',
+            contract: contracts.contracts.busdFarmer,
+            contractABI: abi.ABI_BUSDFARMER,
+            eggsPerMiner: 1080000,
+            startBlock: 17052202,
+            endBlock: 32401836,
+            buyMethod: 'calculateEggBuySimple(uint256)',
+            sellMethod: 'calculateEggSell(uint256)',
+            getEggsMethod: 'getEggsSinceLastHatch(address)',
+            getMinersMethod: 'getMyMiners(address)'
+        }
     } else if (minerLabel == 'grinchbucks') {
         miner =
         {

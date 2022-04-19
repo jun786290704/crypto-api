@@ -19,7 +19,8 @@ const contracts = {
     roastBeef: '0xd81F5DB384d604D85D158FCb8E00341Aff200E22',
     fishfarm: '0x8bea96dbe7c85127a68ad6916949670eb5c45e9c',
     degenBNB: '0x5D44059ff7AD513B4C509eCA13c00F136298488f',
-    grinchBucks: '0xb3c0B3D3803D6C9ACf6c1af89bf1Cb728F8331B6'
+    grinchBucks: '0xb3c0B3D3803D6C9ACf6c1af89bf1Cb728F8331B6',
+    busdFarmer: '0x8be8881C641Dc5A40845253Ee3eD04955eDFe96D'
 }
 
 exports.contracts = contracts;
