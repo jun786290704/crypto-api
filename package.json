@@ -11,6 +11,7 @@
   "scripts": {
 
     "start": "node ./bin/www"
+    "build":"npm run build"
 
   },
 
@@ -32,6 +33,7 @@
 
     "http-errors": "~1.6.3",
 
+    "build":"",
     "jade": "~1.11.0",
 
     "mongodb": "^4.4.1",
